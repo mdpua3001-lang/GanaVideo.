@@ -1,0 +1,48 @@
+
+name: Construir APK GanaVideo
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'GanaVideo-proyecto-Android.zip'
+      - '.github/workflows/android.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar proyecto
+        uses: actions/checkout@v4
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Preparar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Preparar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Extraer proyecto
+        run: |
+          unzip -q GanaVideo-proyecto-Android.zip -d extracted
+
+      - name: Compilar APK
+        working-directory: extracted/GanaVideo
+        run: gradle assembleDebug --no-daemon
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GanaVideo-APK
+          path: extracted/GanaVideo/app/build/outputs/apk/debug/app-debug.apk
